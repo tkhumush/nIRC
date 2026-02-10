@@ -29,6 +29,9 @@
 
   --font-main: 'Fixedsys', 'Consolas', 'Courier New', monospace;
   --font-size: 13px;
+
+  --sidebar-width: 160px;
+  --nicklist-width: 140px;
 }
 
 * {
@@ -39,6 +42,7 @@
 
 html, body, #root {
   height: 100%;
+  height: 100dvh;
   width: 100%;
   overflow: hidden;
   font-family: var(--font-main);
@@ -62,6 +66,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   background: var(--bg-window);
   border: 2px solid;
@@ -156,7 +161,7 @@ html, body, #root {
 
 /* === Channel List (left sidebar) === */
 .channel-list {
-  width: 160px;
+  width: var(--sidebar-width);
   min-width: 140px;
   background: var(--bg-panel);
   border: 2px solid;
@@ -270,7 +275,7 @@ html, body, #root {
 
 /* === Nick List (right sidebar) === */
 .nick-list {
-  width: 140px;
+  width: var(--nicklist-width);
   min-width: 120px;
   background: var(--bg-panel);
   border: 2px solid;
@@ -505,4 +510,261 @@ html, body, #root {
   text-align: center;
   white-space: pre;
   margin-bottom: 8px;
+}
+
+/* === Mobile Sidebar Toggle Buttons === */
+.mobile-toggle-btn {
+  display: none;
+}
+
+/* === Mobile Overlay === */
+.sidebar-overlay {
+  display: none;
+}
+
+/* ============================================
+   Mobile Responsive — max-width: 768px
+   ============================================ */
+@media (max-width: 768px) {
+  :root {
+    --font-size: 14px;
+  }
+
+  /* -- Sidebar overlay backdrop -- */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 49;
+  }
+
+  /* -- Channel list: slide-over drawer from left -- */
+  .channel-list {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 75vw;
+    max-width: 280px;
+    min-width: unset;
+    margin: 0;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    border-right: 2px solid var(--border-sunken-outer);
+  }
+
+  .channel-list.open {
+    transform: translateX(0);
+  }
+
+  .channel-list-header {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .channel-item {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  /* -- Nick list: slide-over drawer from right -- */
+  .nick-list {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 65vw;
+    max-width: 240px;
+    min-width: unset;
+    margin: 0;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    border-left: 2px solid var(--border-sunken-outer);
+  }
+
+  .nick-list.open {
+    transform: translateX(0);
+  }
+
+  .nick-list-header {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .nick-item {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  /* -- Toolbar: show toggle buttons, keep compact -- */
+  .mobile-toggle-btn {
+    display: inline-block;
+    background: var(--bg-window);
+    border: 1px solid;
+    border-color: var(--border-raised-outer) var(--border-sunken-outer) var(--border-sunken-outer) var(--border-raised-outer);
+    padding: 2px 8px;
+    font-family: var(--font-main);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    min-height: 28px;
+    min-width: 36px;
+  }
+
+  .mobile-toggle-btn:active {
+    border-color: var(--border-sunken-outer) var(--border-raised-outer) var(--border-raised-outer) var(--border-sunken-outer);
+  }
+
+  .toolbar {
+    min-height: 32px;
+    padding: 2px 4px;
+    gap: 3px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .toolbar-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-height: 28px;
+    white-space: nowrap;
+  }
+
+  /* -- Title bar -- */
+  .titlebar {
+    min-height: 28px;
+    font-size: 13px;
+    padding: 2px 6px;
+  }
+
+  .titlebar-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* -- Topic bar: hide on mobile to save space -- */
+  .topic-bar {
+    display: none;
+  }
+
+  /* -- Message pane: full width -- */
+  .main-content {
+    position: relative;
+  }
+
+  .message-area {
+    margin: 2px;
+  }
+
+  .message-pane {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* -- Input area: touch-friendly -- */
+  .input-area {
+    margin: 0 2px 4px 2px;
+    gap: 2px;
+  }
+
+  .input-nick {
+    display: none;
+  }
+
+  .input-field {
+    font-size: 16px;
+    padding: 8px 8px;
+    border-radius: 0;
+    -webkit-appearance: none;
+  }
+
+  /* -- Status bar: compact -- */
+  .statusbar {
+    min-height: 24px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .statusbar-section {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+
+  /* -- Scrollbars: thinner on mobile -- */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: none;
+    border-radius: 3px;
+    background: #999;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border: none;
+  }
+
+  /* -- Welcome dialog -- */
+  .welcome-dialog {
+    width: 95vw;
+    max-width: 95vw;
+  }
+
+  .welcome-ascii {
+    font-size: 7px;
+  }
+
+  .welcome-body {
+    padding: 12px;
+  }
+
+  .welcome-input {
+    font-size: 16px;
+    padding: 8px 6px;
+    -webkit-appearance: none;
+  }
+
+  .welcome-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+
+  .welcome-label {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   Small mobile (< 400px)
+   ============================================ */
+@media (max-width: 400px) {
+  .toolbar-btn {
+    padding: 4px 5px;
+    font-size: 11px;
+  }
+
+  .statusbar-section:nth-child(2),
+  .statusbar-section:nth-child(3) {
+    display: none;
+  }
+
+  .welcome-ascii {
+    display: none;
+  }
 }

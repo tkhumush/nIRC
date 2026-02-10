@@ -1,7 +1,12 @@
 import { useStore } from '../store';
 import { relayManager } from '../nostr';
 
-export function Toolbar() {
+interface Props {
+  onToggleChannels: () => void;
+  onToggleUsers: () => void;
+}
+
+export function Toolbar({ onToggleChannels, onToggleUsers }: Props) {
   const setActiveView = useStore((s) => s.setActiveView);
   const addStatusMessage = useStore((s) => s.addStatusMessage);
 
@@ -22,6 +27,9 @@ export function Toolbar() {
 
   return (
     <div className="toolbar">
+      <button className="mobile-toggle-btn" onClick={onToggleChannels} title="Channels">
+        #
+      </button>
       <button className="toolbar-btn" onClick={handleConnect}>
         Connect
       </button>
@@ -38,6 +46,10 @@ export function Toolbar() {
         onClick={() => useStore.getState().addStatusMessage('Type /help for commands')}
       >
         Help
+      </button>
+      <div style={{ flex: 1 }} />
+      <button className="mobile-toggle-btn" onClick={onToggleUsers} title="Users">
+        @
       </button>
     </div>
   );

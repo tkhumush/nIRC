@@ -1,7 +1,12 @@
 import { useStore } from '../store';
 import { shortenPubkey } from '../nostr';
 
-export function ChannelList() {
+interface Props {
+  open: boolean;
+  onSelect: () => void;
+}
+
+export function ChannelList({ open, onSelect }: Props) {
   const activeView = useStore((s) => s.activeView);
   const channels = useStore((s) => s.channels);
   const joinedChannels = useStore((s) => s.joinedChannels);
@@ -11,14 +16,19 @@ export function ChannelList() {
 
   const isStatusActive = activeView.type === 'status';
 
+  const handleClick = (fn: () => void) => {
+    fn();
+    onSelect();
+  };
+
   return (
-    <div className="channel-list">
+    <div className={`channel-list ${open ? 'open' : ''}`}>
       <div className="channel-list-header">Channels</div>
 
       {/* Status window */}
       <div
         className={`channel-item status-item ${isStatusActive ? 'active' : ''}`}
-        onClick={() => setActiveView({ type: 'status' })}
+        onClick={() => handleClick(() => setActiveView({ type: 'status' }))}
       >
         Status
       </div>
@@ -33,7 +43,7 @@ export function ChannelList() {
           <div
             key={chId}
             className={`channel-item ${isActive ? 'active' : ''}`}
-            onClick={() => setActiveView({ type: 'channel', channelId: chId })}
+            onClick={() => handleClick(() => setActiveView({ type: 'channel', channelId: chId }))}
             title={ch.about || ch.name}
           >
             #{ch.name}
@@ -56,7 +66,7 @@ export function ChannelList() {
               <div
                 key={pubkey}
                 className={`channel-item dm-item ${isActive ? 'active' : ''}`}
-                onClick={() => setActiveView({ type: 'dm', pubkey })}
+                onClick={() => handleClick(() => setActiveView({ type: 'dm', pubkey }))}
               >
                 {name}
               </div>

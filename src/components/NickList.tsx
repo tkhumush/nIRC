@@ -1,7 +1,11 @@
 import { useStore } from '../store';
 import { shortenPubkey } from '../nostr';
 
-export function NickList() {
+interface Props {
+  open: boolean;
+}
+
+export function NickList({ open }: Props) {
   const activeView = useStore((s) => s.activeView);
   const channelUsers = useStore((s) => s.channelUsers);
   const profiles = useStore((s) => s.profiles);
@@ -9,7 +13,7 @@ export function NickList() {
 
   if (activeView.type !== 'channel') {
     return (
-      <div className="nick-list">
+      <div className={`nick-list ${open ? 'open' : ''}`}>
         <div className="nick-list-header">Users</div>
       </div>
     );
@@ -24,7 +28,7 @@ export function NickList() {
   }
 
   return (
-    <div className="nick-list">
+    <div className={`nick-list ${open ? 'open' : ''}`}>
       <div className="nick-list-header">Users ({userList.length})</div>
       {userList.map((pubkey) => {
         const profile = profiles.get(pubkey);
