@@ -27,9 +27,10 @@ export function App() {
     // Init handles identity + relays + subscriptions (single entry point)
     store.init();
 
-    // Set nick after init so identity exists
-    if (nick && store.identity) {
-      store.setNick(nick);
+    // Re-read state after init (store snapshot above is stale)
+    const currentState = useStore.getState();
+    if (nick && currentState.identity) {
+      currentState.setNick(nick);
     }
 
     setShowWelcome(false);

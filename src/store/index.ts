@@ -258,40 +258,50 @@ export const useStore = create<AppState>((set, get) => ({
     }
 
     // Channel doesn't exist — create it
-    if (identity) {
-      get().createChannel(searchName);
+    if (!identity) {
+      get().addStatusMessage('Error: No identity — cannot create channel. Try reconnecting.');
+      return;
     }
+    get().createChannel(searchName);
   },
 
   createChannel: (name: string, about?: string) => {
     const { identity, channels, joinedChannels } = get();
-    if (!identity) return;
+    if (!identity) {
+      get().addStatusMessage('Error: No identity — cannot create channel.');
+      return;
+    }
 
-    const event = createChannelEvent(
-      { name, about: about || `nIRC channel: #${name}` },
-      identity.privateKey
-    );
+    try {
+      const event = createChannelEvent(
+        { name, about: about || `nIRC channel: #${name}` },
+        identity.privateKey
+      );
 
-    relayManager.publish(event);
+      relayManager.publish(event);
 
-    const channel: Channel = {
-      id: event.id,
-      name,
-      about: about || `nIRC channel: #${name}`,
-      creator: identity.publicKey,
-      created_at: event.created_at,
-    };
+      const channel: Channel = {
+        id: event.id,
+        name,
+        about: about || `nIRC channel: #${name}`,
+        creator: identity.publicKey,
+        created_at: event.created_at,
+      };
 
-    const updatedChannels = new Map(channels);
-    updatedChannels.set(event.id, channel);
+      const updatedChannels = new Map(channels);
+      updatedChannels.set(event.id, channel);
 
-    const updatedJoined = new Set(joinedChannels);
-    updatedJoined.add(event.id);
+      const updatedJoined = new Set(joinedChannels);
+      updatedJoined.add(event.id);
 
-    set({ channels: updatedChannels, joinedChannels: updatedJoined });
-    get().subscribeToChannel(event.id);
-    get().setActiveView({ type: 'channel', channelId: event.id });
-    get().addStatusMessage(`Created and joined #${name}`);
+      set({ channels: updatedChannels, joinedChannels: updatedJoined });
+      get().subscribeToChannel(event.id);
+      get().setActiveView({ type: 'channel', channelId: event.id });
+      get().addStatusMessage(`Created and joined #${name}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      get().addStatusMessage(`Error creating channel #${name}: ${msg}`);
+    }
   },
 
   partChannel: (channelId: string) => {
@@ -312,58 +322,71 @@ export const useStore = create<AppState>((set, get) => ({
 
   sendMessage: (channelId: string, content: string) => {
     const { identity, messages } = get();
-    if (!identity) return;
+    if (!identity) {
+      get().addStatusMessage('Error: No identity — cannot send message.');
+      return;
+    }
 
-    const event = createChannelMessageEvent(
-      channelId,
-      content,
-      identity.privateKey
-    );
+    try {
+      const event = createChannelMessageEvent(
+        channelId,
+        content,
+        identity.privateKey
+      );
 
-    relayManager.publish(event);
+      relayManager.publish(event);
 
-    const msg: ChatMessage = {
-      id: event.id,
-      pubkey: identity.publicKey,
-      content,
-      created_at: event.created_at,
-      channelId,
-      nick: identity.nick,
-    };
+      const msg: ChatMessage = {
+        id: event.id,
+        pubkey: identity.publicKey,
+        content,
+        created_at: event.created_at,
+        channelId,
+        nick: identity.nick,
+      };
 
-    const existing = messages.get(channelId) || [];
-    const updated = new Map(messages);
-    updated.set(channelId, [...existing, msg]);
-    set({ messages: updated });
+      const existing = messages.get(channelId) || [];
+      const updated = new Map(messages);
+      updated.set(channelId, [...existing, msg]);
+      set({ messages: updated });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      get().addStatusMessage(`Error sending message: ${msg}`);
+    }
   },
 
   sendAction: (channelId: string, action: string) => {
     const { identity, messages } = get();
     if (!identity) return;
 
-    const content = `ACTION ${action}`;
-    const event = createChannelMessageEvent(
-      channelId,
-      content,
-      identity.privateKey
-    );
+    try {
+      const content = `ACTION ${action}`;
+      const event = createChannelMessageEvent(
+        channelId,
+        content,
+        identity.privateKey
+      );
 
-    relayManager.publish(event);
+      relayManager.publish(event);
 
-    const msg: ChatMessage = {
-      id: event.id,
-      pubkey: identity.publicKey,
-      content: action,
-      created_at: event.created_at,
-      channelId,
-      nick: identity.nick,
-      isAction: true,
-    };
+      const msg: ChatMessage = {
+        id: event.id,
+        pubkey: identity.publicKey,
+        content: action,
+        created_at: event.created_at,
+        channelId,
+        nick: identity.nick,
+        isAction: true,
+      };
 
-    const existing = messages.get(channelId) || [];
-    const updated = new Map(messages);
-    updated.set(channelId, [...existing, msg]);
-    set({ messages: updated });
+      const existing = messages.get(channelId) || [];
+      const updated = new Map(messages);
+      updated.set(channelId, [...existing, msg]);
+      set({ messages: updated });
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      get().addStatusMessage(`Error sending action: ${errMsg}`);
+    }
   },
 
   sendDM: (pubkey: string, content: string) => {
