@@ -30,9 +30,19 @@ export class RelayManager {
   private globalSubscriptions: Map<string, Subscription> = new Map();
   private subCounter = 0;
   private onStatusChange: ((relays: RelayInfo[]) => void) | null = null;
+  private onRelayConnect: ((url: string) => void) | null = null;
+  private onRelayDisconnect: ((url: string) => void) | null = null;
 
   setStatusHandler(handler: (relays: RelayInfo[]) => void) {
     this.onStatusChange = handler;
+  }
+
+  setConnectionHandler(
+    onConnect: (url: string) => void,
+    onDisconnect: (url: string) => void
+  ) {
+    this.onRelayConnect = onConnect;
+    this.onRelayDisconnect = onDisconnect;
   }
 
   private emitStatus() {
@@ -96,6 +106,7 @@ export class RelayManager {
         relay.status = 'connected';
         relay.reconnectAttempts = 0;
         this.emitStatus();
+        this.onRelayConnect?.(relay.url);
 
         // Flush pending messages
         for (const msg of relay.pendingMessages) {
@@ -118,9 +129,13 @@ export class RelayManager {
       };
 
       ws.onclose = () => {
+        const wasConnected = relay.status === 'connected';
         relay.status = 'disconnected';
         relay.ws = null;
         this.emitStatus();
+        if (wasConnected) {
+          this.onRelayDisconnect?.(relay.url);
+        }
         this.scheduleReconnect(relay);
       };
 

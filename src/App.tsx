@@ -19,20 +19,18 @@ export function App() {
   const handleConnect = (nick: string, nsec?: string) => {
     const store = useStore.getState();
 
-    // Initialize identity
+    // Import key first if provided (before init creates a new one)
     if (nsec) {
       store.importKey(nsec);
     }
-    store.initIdentity();
 
-    // Set nick if provided
+    // Init handles identity + relays + subscriptions (single entry point)
+    store.init();
+
+    // Set nick after init so identity exists
     if (nick && store.identity) {
       store.setNick(nick);
     }
-
-    // Connect to relays and start subscriptions
-    store.connectToRelays();
-    store.init();
 
     setShowWelcome(false);
   };

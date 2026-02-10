@@ -105,6 +105,9 @@ export const useStore = create<AppState>((set, get) => ({
   initialized: false,
 
   initIdentity: () => {
+    // Skip if already initialized (e.g., by importKey)
+    if (get().identity) return;
+
     let identity = loadIdentity();
     if (!identity) {
       identity = createIdentity();
@@ -142,13 +145,18 @@ export const useStore = create<AppState>((set, get) => ({
   connectToRelays: (urls?: string[]) => {
     const relayUrls = urls || DEFAULT_RELAYS;
 
-    for (const url of relayUrls) {
-      relayManager.connect(url);
-    }
-
     relayManager.setStatusHandler((relays) => {
       set({ relays });
     });
+
+    relayManager.setConnectionHandler(
+      (url) => get().addStatusMessage(`Connected to ${url}`),
+      (url) => get().addStatusMessage(`Disconnected from ${url}`)
+    );
+
+    for (const url of relayUrls) {
+      relayManager.connect(url);
+    }
 
     get().addStatusMessage(`Connecting to ${relayUrls.length} relays...`);
 
